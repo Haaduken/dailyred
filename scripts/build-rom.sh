@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds the modified FireRed ROM with the project-local toolchain
-# (see scripts/setup-macos.sh) and puts a gzipped copy in web/game/ for the website.
+# (see scripts/setup-{macos,arch}.sh) and puts a gzipped copy in web/game/.
 #
 #   scripts/build-rom.sh            # normal build
 #   scripts/build-rom.sh clean      # any extra args are passed to make
@@ -11,15 +11,28 @@ TC="$ROOT/.toolchain"
 GAME="$ROOT/pokefirered"
 
 if [ ! -x "$TC/arm-none-eabi/bin/arm-none-eabi-gcc" ]; then
-  echo "Toolchain missing. Run scripts/setup-macos.sh first."; exit 1
+  echo "Toolchain missing. Run scripts/setup-macos.sh (macOS) or scripts/setup-arch.sh (Arch Linux) first." >&2
+  exit 1
 fi
 
-# gbagfx asks pkg-config for libpng; clang also honours these variables,
-# which lets it find our static libpng without pkg-config/Homebrew.
-export CPATH="$TC/libpng/include${CPATH:+:$CPATH}"
-export LIBRARY_PATH="$TC/libpng/lib${LIBRARY_PATH:+:$LIBRARY_PATH}"
-# A no-op pkg-config so the tool Makefiles don't print "command not found".
-export PATH="$ROOT/scripts/shims:$PATH"
+if [ "$(uname -s)" = Darwin ]; then
+  if [ ! -f "$TC/libpng/lib/libpng.a" ]; then
+    echo "libpng missing. Run scripts/setup-macos.sh first." >&2
+    exit 1
+  fi
+  export CPATH="$TC/libpng/include${CPATH:+:$CPATH}"
+  export LIBRARY_PATH="$TC/libpng/lib${LIBRARY_PATH:+:$LIBRARY_PATH}"
+  # macOS uses local static libpng without pkg-config/Homebrew.
+  export PATH="$ROOT/scripts/shims:$PATH"
+elif ! command -v pkg-config >/dev/null 2>&1 || ! pkg-config --exists libpng; then
+  echo "libpng or pkg-config missing. On Arch Linux, run scripts/setup-arch.sh for instructions." >&2
+  exit 1
+fi
+
+if [ ! -d "$GAME" ]; then
+  echo "pokefirered/ missing. Run scripts/get-pokefirered.sh first." >&2
+  exit 1
+fi
 
 JOBS="$(sysctl -n hw.ncpu 2>/dev/null || nproc)"
 

@@ -15,8 +15,12 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TC="$ROOT/.toolchain"
 mkdir -p "$TC/downloads"
 
-GCC_VER="14.2.1-1.1"
 LIBPNG_VER="1.6.44"
+
+if [ "$(uname -s)" != Darwin ]; then
+  echo "This setup script requires macOS. On Arch Linux, run scripts/setup-arch.sh." >&2
+  exit 1
+fi
 
 case "$(uname -m)" in
   x86_64) GCC_HOST="darwin-x64" ;;
@@ -29,26 +33,7 @@ if ! xcode-select -p >/dev/null 2>&1; then
   exit 1
 fi
 
-# --- arm-none-eabi GCC --------------------------------------------------------
-GCC_NAME="xpack-arm-none-eabi-gcc-$GCC_VER"
-if [ ! -x "$TC/arm-none-eabi/bin/arm-none-eabi-gcc" ]; then
-  tarball="$GCC_NAME-$GCC_HOST.tar.gz"
-  url="https://github.com/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases/download/v$GCC_VER/$tarball"
-  echo ">> Downloading $tarball"
-  curl -fL --retry 3 -o "$TC/downloads/$tarball" "$url"
-  curl -fsL -o "$TC/downloads/$tarball.sha" "$url.sha"
-  expected="$(awk '{print $1}' "$TC/downloads/$tarball.sha")"
-  actual="$(shasum -a 256 "$TC/downloads/$tarball" | awk '{print $1}')"
-  [ "$expected" = "$actual" ] || { echo "Checksum mismatch for $tarball"; exit 1; }
-  echo ">> Checksum OK, extracting"
-  tar -xzf "$TC/downloads/$tarball" -C "$TC"
-  rm -f "$TC/arm-none-eabi"
-  ln -s "$GCC_NAME" "$TC/arm-none-eabi"
-  rm -f "$TC/downloads/$tarball"
-fi
-"$TC/arm-none-eabi/bin/arm-none-eabi-gcc" --version | head -1
-# Fail early if the compiler can't actually run (e.g. missing dylibs).
-echo 'int f(void){return 0;}' | "$TC/arm-none-eabi/bin/arm-none-eabi-gcc" -x c -c -o /dev/null -
+bash "$ROOT/scripts/setup-arm-toolchain.sh" "$GCC_HOST"
 
 # --- libpng (static, built with the system clang) ----------------------------
 if [ ! -f "$TC/libpng/lib/libpng.a" ]; then

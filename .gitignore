@@ -1,6 +1,6 @@
 # Everything below is recreated by the scripts in scripts/ (see README).
 
-# scripts/setup-macos.sh
+# scripts/setup-macos.sh / scripts/setup-arch.sh
 /.toolchain/
 # scripts/get-pokefirered.sh (pret/pokefirered + patches/)
 /pokefirered/
@@ -8,6 +8,8 @@
 /web/vendor/
 # scripts/build-rom.sh. Build output; don't commit it.
 /web/game/
+# scripts/build-windows.sh
+/dist/
 
 # Wrangler's local cache (Cloudflare deploys)
 /.wrangler/

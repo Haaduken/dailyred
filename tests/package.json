@@ -2,7 +2,7 @@
   "name": "dailyred-tests",
   "private": true,
   "type": "module",
-  "description": "Headless browser tests for Daily Red (drives your installed Google Chrome)",
+  "description": "Headless browser tests for Daily Red (drives installed Chrome or Chromium)",
   "scripts": {
     "test": "node smoke.mjs && node site.mjs",
     "smoke": "node smoke.mjs",

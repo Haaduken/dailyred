@@ -125,7 +125,7 @@ export async function readMemory(page) {
   };
 }
 
-// Symbol addresses from the built ELF (needs the toolchain from setup-macos.sh).
+// Symbol addresses from the built ELF (needs the platform setup toolchain).
 let symbolCache;
 export function symbols() {
   if (symbolCache) return symbolCache;

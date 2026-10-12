@@ -17,13 +17,19 @@ NOSTALGIST_VER="0.22.0"
 NOSTALGIST_SHA="e0bb4a7c0adefd4399034c4931dcc13720ff87aaedd6e1f20d88db3564da5876"
 CORE_REL="v1.22.2"
 CORE_SHA="d195371c3ea626c9246e9d3ab82ded4d93f3f99f85634af1588724cc44d47644"
+RETROARCH_LICENSE_SHA="8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+MGBA_LICENSE_SHA="fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85"
 FONT_URL="https://fonts.gstatic.com/s/pixelifysans/v3/CHylV-3HFUT7aC4iv1TxGDR9Jn0Ei0tSaJ0.woff2"
 FONT_SHA="0f2216c1b7bf13b775e7b825c15e1c8414f3899cbd4120f275cdc96001a053a0"
 FONT_LICENSE_URL="https://raw.githubusercontent.com/google/fonts/main/ofl/pixelifysans/OFL.txt"
 
 check() { # file sha
   local actual
-  actual="$(shasum -a 256 "$1" | awk '{print $1}')"
+  if command -v sha256sum >/dev/null 2>&1; then
+    actual="$(sha256sum "$1" | awk '{print $1}')"
+  else
+    actual="$(shasum -a 256 "$1" | awk '{print $1}')"
+  fi
   [ "$actual" = "$2" ] || { echo "Checksum mismatch: $1 ($actual)"; exit 1; }
 }
 
@@ -41,6 +47,14 @@ curl -fsSL -o "$TMP/mgba.zip" \
   "https://cdn.jsdelivr.net/gh/arianrhodsandlot/retroarch-emscripten-build@$CORE_REL/retroarch/mgba_libretro.zip"
 check "$TMP/mgba.zip" "$CORE_SHA"
 unzip -oq "$TMP/mgba.zip" -d "$VENDOR"
+curl -fsSL -o "$TMP/retroarch.COPYING.txt" \
+  "https://raw.githubusercontent.com/libretro/RetroArch/$CORE_REL/COPYING"
+check "$TMP/retroarch.COPYING.txt" "$RETROARCH_LICENSE_SHA"
+cp "$TMP/retroarch.COPYING.txt" "$VENDOR/retroarch.COPYING.txt"
+curl -fsSL -o "$TMP/mgba.LICENSE.txt" \
+  "https://raw.githubusercontent.com/mgba-emu/mgba/0.10.5/LICENSE"
+check "$TMP/mgba.LICENSE.txt" "$MGBA_LICENSE_SHA"
+cp "$TMP/mgba.LICENSE.txt" "$VENDOR/mgba.LICENSE.txt"
 
 echo ">> Pixelify Sans"
 curl -fsSL -o "$TMP/font.woff2" "$FONT_URL"

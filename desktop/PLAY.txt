@@ -1,0 +1,26 @@
+Daily Red - offline Windows launcher
+===================================
+
+1. Put your locally built dailyred.gba.gz (or dailyred.gba) in the same
+   folder as DailyRed.exe. A normal FireRed ROM will not work.
+   Build instructions: https://github.com/Haaduken/dailyred#quick-start-arch-linux
+2. Double-click DailyRed.exe. The game opens in your default browser.
+   Use a recent Chrome, Edge or Firefox. Internet access is not needed.
+3. Keep the console window open while playing. Press Ctrl+C to stop it.
+
+No game ROM or generated game artwork is included in this executable.
+The standalone title card uses Daily Red's icon instead of RED's sprite.
+
+Your record stays in this browser on this computer. Use the same browser
+and port to keep your stats. Clearing browser data resets your record.
+
+Advanced: DailyRed.exe -rom "C:\path\to\dailyred.gba.gz" -port 17893
+If the port is already in use, close the other Daily Red window or choose
+another port. The launcher serves only on this computer (127.0.0.1).
+
+Windows may warn about this unsigned executable. It has no installer and
+needs no administrator privileges.
+
+Software license notices and emulator source links are available in the
+game's Licenses footer link. Launcher source and build instructions:
+https://github.com/Haaduken/dailyred

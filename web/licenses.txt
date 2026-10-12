@@ -13,6 +13,7 @@ mGBA libretro core (vendor/mgba_libretro.js, vendor/mgba_libretro.wasm)
   https://github.com/mgba-emu/mgba
   Built for the browser as part of RetroArch (GNU GPL v3):
   https://github.com/libretro/RetroArch
+  License texts: vendor/mgba.LICENSE.txt and vendor/retroarch.COPYING.txt.
   Build used: https://github.com/arianrhodsandlot/retroarch-emscripten-build
   (release v1.22.2). Source code for these binaries is available at the links
   above.

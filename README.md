@@ -13,12 +13,14 @@ through the mGBA emulator compiled to WebAssembly. Nothing about battles is
 reimplemented in JavaScript.
 
 - [Quick start (macOS)](#quick-start-macos)
+- [Quick start (Arch Linux)](#quick-start-arch-linux)
 - [How it works](#how-it-works)
 - [Team generation](#team-generation)
 - [RED's team](#reds-team)
 - [Development workflow](#development-workflow)
 - [Testing and debugging](#testing-and-debugging)
 - [Running it locally](#running-it-locally)
+- [Offline Windows executable](#offline-windows-executable)
 - [Copyright and licenses](#copyright-and-licenses)
 - [Known limitations](#known-limitations)
 
@@ -37,6 +39,29 @@ node scripts/serve.mjs      # open http://localhost:8080
 ```
 
 `setup-macos.sh` picks the right compiler for Intel or Apple Silicon Macs.
+
+## Quick start (Arch Linux)
+
+On x86_64 Arch Linux, install the native dependencies with pacman:
+
+```sh
+sudo pacman -Syu --needed base-devel curl git libpng nodejs npm unzip
+```
+
+Then, from the repository root:
+
+```sh
+scripts/setup-arch.sh       # pinned ARM cross-compiler into .toolchain/ (one time)
+scripts/get-pokefirered.sh   # pret/pokefirered at a pinned commit + patches/
+scripts/fetch-vendor.sh     # emulator, emulator core and font into web/vendor/
+scripts/build-rom.sh        # builds the ROM, writes web/game/dailyred.gba.gz
+node scripts/serve.mjs      # open http://localhost:8080
+```
+
+The setup script checks dependencies without running `sudo` or changing system
+packages. It uses the same xPack GCC 14.2.1 as macOS rather than Arch's rolling
+ARM compiler, and the build uses system libpng through `pkg-config`. No ROM is
+needed. Re-running setup skips the installed compiler.
 
 ## How it works
 
@@ -268,12 +293,16 @@ website uses, press buttons, and read game RAM out of emulator save states
 
 ```sh
 cd tests
-npm install        # playwright-core only; it drives your installed Google Chrome
+npm install        # playwright-core only; it drives installed Chrome or Chromium
 npm run smoke      # the game loop (~3 min)
 npm run site       # the website on desktop and phone (~1 min)
 npm run teams -- 1 2 3            # print + validate the teams for these seeds
 npm run teams -- --random 40      # 40 random seeds
 ```
+
+On Arch Linux, install the browser with `sudo pacman -Syu --needed chromium`.
+The tests detect `/usr/bin/chromium` automatically. For a browser installed
+elsewhere, set `CHROME_PATH` to its executable.
 
 `npm run smoke` checks that:
 - each seed's team is valid: 6 different real Gen 1–3 species with a combined
@@ -334,6 +363,33 @@ saved in the browser for that address, so keep using the same port to keep
 your streaks. After rebuilding the ROM (`scripts/build-rom.sh`), reload the
 page.
 
+## Offline Windows executable
+
+Build a Windows x64 `.exe` on Arch Linux (or macOS/Linux with Go 1.22+):
+
+```sh
+sudo pacman -Syu --needed go   # Arch Linux, if Go isn't installed
+scripts/fetch-vendor.sh       # includes the emulator license texts
+scripts/build-windows.sh      # writes dist/DailyRed.exe and dist/PLAY.txt
+```
+
+Share **`DailyRed.exe` and `PLAY.txt`**. The executable bundles the website,
+emulator and font, **not the ROM or generated game artwork**. Each player
+must build a Daily Red ROM locally using the quick start, then put
+`dailyred.gba.gz` (or `dailyred.gba`) next to the executable. A retail FireRed
+ROM won't work. The standalone title card uses the project's icon instead
+of RED's generated sprite.
+
+Double-click the executable on Windows to open the game in the default
+browser, with no internet connection required. Keep its console window open
+while playing; Ctrl+C stops it. It needs no installer or administrator
+privileges, but Windows may warn because the executable is unsigned.
+
+The server listens only on `127.0.0.1:17893`. Browser stats persist at that
+address, so keep the same browser and port. For a different ROM location or
+port, run `DailyRed.exe -rom "C:\path\dailyred.gba.gz" -port 17894`.
+`-no-browser` disables automatic browser launching.
+
 ## Copyright and licenses
 
 Daily Red is a free, unofficial fan project. It isn't affiliated with or
@@ -364,8 +420,9 @@ footer links to it.
 - **Audio** can't be checked by the headless tests. Browsers start audio
   suspended unless it begins during a click, so the game resumes it on the
   next key press or tap.
-- **Tested environment:** macOS with Google Chrome (headless, desktop and
-  phone emulation). Not yet tried on Safari, Firefox or real phones.
+- **Tested environments:** macOS with Google Chrome and x86_64 Arch Linux
+  with Chromium (headless, desktop and phone emulation). Not yet tried on
+  Safari, Firefox or real phones.
 - The L/R buttons still open FireRed's built-in help, which describes the
   normal game.
 
@@ -374,11 +431,15 @@ footer links to it.
 ```
 patches/pokefirered-dailyred.patch   all changes to pret/pokefirered
 scripts/setup-macos.sh               toolchain (xPack arm-none-eabi-gcc 14.2.1 + libpng)
+scripts/setup-arch.sh                toolchain (same pinned GCC; system libpng)
+scripts/setup-arm-toolchain.sh       shared, checksummed ARM compiler download
 scripts/get-pokefirered.sh           pinned upstream checkout + patch
 scripts/save-patch.sh                pokefirered/ changes → patches/
 scripts/build-rom.sh                 make modern → web/game/dailyred.gba.gz
 scripts/fetch-vendor.sh              Nostalgist, mGBA core, font (pinned, checksummed)
 scripts/serve.mjs                    local static server
+scripts/build-windows.sh             offline Windows x64 launcher (no bundled ROM)
+desktop/                            launcher source, tests and friend-facing instructions
 web/                                 the website
 tests/                               headless browser tests and the teams tool
 ```
